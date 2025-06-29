@@ -73,5 +73,43 @@ python main.py
 Notes
 Ensure Redis and Redis Stack are running before starting any services.
 
-If the env folder does not exist, create a virtual environment:
+# 🚑 Emergency Service Recommendation System
+
+This web application helps users book nearby ambulances and find the best hospitals based on specialty and distance. It uses Redis for fast data access and includes distance calculations, user authentication, and live map tracking.
+
+---
+
+## 🔧 Features
+
+- 🚑 Ambulance Booking by Pincode
+- 🏥 Hospital Search by Specialty
+- 📍 Distance Calculation Between Rider and Hospital/Ambulance
+- 🗺️ Live Ambulance Tracking on Map (via Mapbox or Leaflet)
+- 📦 Redis Integration for Real-time Key Management
+- 🔒 User Authentication System (Driver & Rider)
+
+---
+
+## 📸 Screenshots
+
+### 1. Location Input and Specialty Search
+![Specialty Search](./photos/SearchForHospital.png)
+
+### 2. Recommended Hospitals by Specialty
+![Hospital Recommendation](./photos/GetHospital.png)
+
+### 3. Recommended Ambulance
+![Hospital Recommendation](./photos/GetAmbulance.png)
+
+### 5. Redis Data Store View
+![Redis Database](./photos/RedisUse.png)
+
+### 6. Booking Confirmation Message
+![Booking Confirmed](./photos/Result.png)
+
+
+
+
+
+
 
