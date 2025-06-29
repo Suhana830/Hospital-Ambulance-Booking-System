@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <%- include('./partial/head.ejs') %>
+</head>
+
+<body>
+    <%- include('./partial/nav.ejs') %>
+        <h3 class="mb-3 text-center">BEST HOSPITAL </h3>
+
+        <div class="container text-center">
+            <div class="row">
+
+                <div class="col">
+                    <ul style="list-style: none; padding: 0;">
+
+
+                        <% flaskData.forEach(item=> { %>
+                            <li>
+
+                                <div class="card" style="width: 18rem;">
+                                    <form action="http://localhost:8033/get-driver" method="post">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <%= item.hospital %>
+                                            </h5>
+                                            <input type="text" name="name" id="" value="<%- item.hospital %>"
+                                                style="display: none;" />
+                                            <input type="text" name="latitude" id="" value="<%- item.lat %>"
+                                                style="display: none;">
+                                            <input type="text" name="longitude" id="" value="<%- item.long %>"
+                                                style="display: none;">
+
+                                            <!-- latitude and Longitude -->
+                                            <!-- <input type="text" name="name" id="" value="<%- item.name %>" style="display: none;">
+                                        <input type="text" name="name" id="" value="<%- item.name %>" style="display: none;">
+                                        <h6 class="card-subtitle mb-2 text-body-secondary"> -->
+                                            <%= item.speciality %>
+                                                </h6>
+                                                <p class="card-text">
+                                                    <%= item.msg %>
+                                                </p>
+                                                <button type="submit" class="btn btn-primary">Book</button>
+
+                                        </div>
+                                    </form>
+                                </div>
+
+                            </li>
+                            <% }) %>
+
+                    </ul>
+                </div>
+
+
+                <div class="col">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0rGizaWAUEP4xMHOK8TfaaG_UT9sClQLoQAWfF8leSGe2YlXVZ9WV_UBDEDPXDvalCo4&usqp=CAU"
+                        width="600px">
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <%- include('./partial/script.ejs') %>
+</body>
+
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <%- include('./partial/head.ejs') %>
+</head>
+
+<body>
+    <%- include('./partial/nav.ejs') %>
+        <h3 class="mb-3 text-center">Ambulance near you </h3>
+
+        <div class="container text-center">
+            <div class="row">
+                <div class="col">
+
+                    <ul style="list-style: none;">
+
+                        <% amb.forEach(item=> { %>
+
+                            <li>
+                                <form action="/createBooking" method="post">
+                                    <div class="card border-primary mb-3" style="max-width: 18rem;">
+
+                                        <% const parts=item.member.split("-"); const
+                                            ambulanceNumber=parts[0].split(":")[1]; const
+                                            driverId=parts[1].split(":")[1]; %>
+
+                                            <div class="card-header">
+                                                <%= ambulanceNumber %>
+                                            </div>
+
+
+                                            <input type="text" name="DriverId" id="" value="<%- driverId %>">
+                                            <input type="text" name="AmbulanceNum" id="" value="<%- ambulanceNumber %>">
+
+                                            <div class="card-body text-primary">
+                                                <h5 class="card-title">Its Distance from you is</h5>
+                                                <p class="card-text">
+                                                    <%=item.distance %> KM.
+                                                </p>
+                                                <button class="btn btn-primary" type="submit">book</button>
+                                            </div>
+                                    </div>
+                                </form>
+                            </li>
+                            <% }) %>
+
+                    </ul>
+
+
+
+
+
+
+                </div>
+                <div class="col">
+                    <img src="https://static.vecteezy.com/system/resources/previews/029/338/731/non_2x/ambulance-car-illustration-emergency-medical-service-vehicle-isolated-on-white-background-vector.jpg"
+                        alt="" srcset="" width="500px">
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <%- include('./partial/script.ejs') %>
+</body>
+
+</html>

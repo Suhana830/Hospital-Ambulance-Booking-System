@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Ambulance Tracking</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .mapboxgl-popup-content {
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3VodTEyIiwiYSI6ImNtNDhmaTJ6MTBkdHQya3M5eGRoejlldzYifQ.RfkfwzDkUXgB0MPqwI-nYg';
+
+        // Initialize Map
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [77.5946, 12.9716], // Initial center: [Longitude, Latitude]
+            zoom: 13
+        });
+
+        // Coordinates for Destination
+        let RiderLocation = {}, HospitalLocation = {}, DriverInfo = {};
+        let driverLocation = { latitude: 0, longitude: 0 }; // Declare and initialize driverLocation
+        let driverMarker = null;  // Initialize driver marker variable
+
+        // Function to fetch a cookie value by name
+        function getCookieValue(name) {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return decodeURIComponent(cookie.substring(name.length + 1));
+                }
+            }
+            return null;
+        }
+
+        // Parse cookies for rider, hospital, and driver data
+        try {
+            const riderCookie = getCookieValue('riderLocation');
+            RiderLocation = riderCookie && riderCookie.startsWith('j:') ? JSON.parse(riderCookie.slice(2)) : JSON.parse(riderCookie || '{}');
+
+            const hospitalCookie = getCookieValue('HospitalToken');
+            HospitalLocation = hospitalCookie && hospitalCookie.startsWith('j:') ? JSON.parse(hospitalCookie.slice(2)) : JSON.parse(hospitalCookie || '{}');
+
+            const driverCookie = getCookieValue('DriverInfo');
+            DriverInfo = driverCookie && driverCookie.startsWith('j:') ? JSON.parse(driverCookie.slice(2)) : JSON.parse(driverCookie || '{}');
+        } catch (error) {
+            console.error('Error parsing cookies:', error);
+        }
+
+        // Add static markers for the rider (patient) and hospital
+        const riderLongitude = parseFloat(RiderLocation?.Longitude);
+        const riderLatitude = parseFloat(RiderLocation?.Latitude);
+        const hospitalLongitude = parseFloat(HospitalLocation?.longitude);
+        const hospitalLatitude = parseFloat(HospitalLocation?.latitude);
+
+        const destination = [77.5946, 12.9796];
+
+        // Add Destination Marker
+        const destinationMarker = new mapboxgl.Marker({ color: 'red' })
+            .setLngLat(destination)
+            .setPopup(new mapboxgl.Popup().setHTML("<h3>Destination</h3>"))
+            .addTo(map);
+
+        // Initial Ambulance Marker
+        let ambulanceMarker = new mapboxgl.Marker({ color: 'blue' }).setLngLat([77.5946, 12.9716]).addTo(map);
+
+        // Snap coordinates to nearest road using Mapbox Map Matching API
+        async function snapToRoad(coordinate) {
+            const url = `https://api.mapbox.com/matching/v5/mapbox/driving/${coordinate[0]},${coordinate[1]}?access_token=${mapboxgl.accessToken}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.matchings && data.matchings.length > 0) {
+                    return data.matchings[0].geometry.coordinates; // Snap coordinates to nearest road
+                } else {
+                    console.warn('No roads found for coordinates');
+                    return coordinate; // Return original if no matching roads
+                }
+            } catch (error) {
+                console.error('Error snapping to roads:', error);
+                return coordinate; // Fallback to original coordinates
+            }
+        }
+
+        // Fetch ambulance location (mock API)
+        async function fetchAmbulanceLocation() {
+            try {
+                // Replace this with your actual endpoint
+                const response = await fetch('http://localhost:8033/driver-location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        Ambulance: DriverInfo?.Ambulance || '',
+                        member: DriverInfo?.DriverId || '',
+                    }),
+                });
+
+                const data = await response.json();
+
+                // Return longitude and latitude
+                if (data && data.longitude && data.latitude) {
+                    console.log(data.longitude, data.latitude)
+                    return [data.longitude, data.latitude];
+                } else {
+                    console.error("Invalid data format from server:", data);
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error fetching ambulance location:", error);
+                return null;
+            }
+        }
+
+
+        // Example usage
+        // const ambulanceCoordinates = [26.839299, 80.923102];
+        // const destinationCoordinates = [77.5946, 12.9796];
+        // fetchRoute(ambulanceCoordinates, destinationCoordinates);
+
+
+        // Update Ambulance Marker and Draw Route
+        async function updateAmbulancePosition() {
+            const ambulanceLocation = await fetchAmbulanceLocation();
+            if (!ambulanceLocation) return;
+
+            // Update Ambulance Marker
+            ambulanceMarker.setLngLat(ambulanceLocation);
+
+            // Fetch and Update Route
+            const route = await fetchRoute(ambulanceLocation, destination);
+            if (route) {
+                if (map.getSource('route')) {
+                    // Update existing route
+                    map.getSource('route').setData({
+                        type: 'Feature',
+                        properties: {},
+                        geometry: route
+                    });
+                } else {
+                    // Add route layer
+                    map.addSource('route', {
+                        type: 'geojson',
+                        data: {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: route
+                        }
+                    });
+
+                    map.addLayer({
+                        id: 'route',
+                        type: 'line',
+                        source: 'route',
+                        layout: {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        paint: {
+                            'line-color': '#007cbf',
+                            'line-width': 4
+                        }
+                    });
+                }
+            }
+        }
+
+        // Periodically Update Ambulance Location and Route
+        map.on('load', () => {
+            updateAmbulancePosition();
+            setInterval(updateAmbulancePosition, 2000); // Update every 2 seconds
+        });
+    </script>
+</body>
+
+</html>

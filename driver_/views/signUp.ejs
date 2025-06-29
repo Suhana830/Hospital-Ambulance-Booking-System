@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partial/head.ejs') %>
+</head>
+
+<body>
+    <%- include('./partial/nav.ejs') %>
+
+        <div class="container mt-4">
+            <form action="/signup" method="post">
+
+                <div class="mb-3">
+                    <label for="exampleInputEmail1" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+                        name="name">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">AmbulanceN</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1" name="ambulanceN">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputEmail1" class="form-label">Email</label>
+                    <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+                        name="email">
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+                </div>
+                <h6>Driving licence photo</h6>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+
+        </div>
+
+
+
+        <%- include('./partial/script.ejs') %>
+</body>
+
+</html>

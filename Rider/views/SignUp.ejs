@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partial/head.ejs') %>
+</head>
+
+<body>
+    <%- include('./partial/nav.ejs') %>
+
+        <div class="container mt-4">
+            <form action="/Rider/signUp" method="post">
+                <div class="mb-3">
+                    <label forcls="name" class="form-label">User</label>
+                    <input type="text" class="form-control" placeholder="enter your name" name="Name" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="Email" class="form-label">Email address</label>
+                    <input type="email" class="form-control" placeholder="example@gmail.com" name="email">
+                    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+
+                </div>
+
+                <div class="mb-3">
+                    <label for="Password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+
+        </div>
+
+        <%- include('./partial/script.ejs') %>
+</body>
+
+</html>

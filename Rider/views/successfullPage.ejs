@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partial/head.ejs') %>
+</head>
+
+<body>
+    <%- include('./partial/nav.ejs') %>
+
+
+        <div style=" display:flex; justify-content: center; background: green; color:azure">
+            <h3>Your Hospital and Ambulance Booked Successfully ! </h3>
+
+            <div class="container mt-4">
+
+                <form action="/driver/map" method="get">
+                    <input type="hidden" name="riderLat" value="<%= RiderLocation.latitude %>">
+                    <input type="hidden" name="riderLong" value="<%= RiderLocation.longitude %>">
+                    <input type="hidden" name="hospitalLat" value="<%= HospitalLocation.latitude %>">
+                    <input type="hidden" name="hospitalLong" value="<%= HospitalLocation.longitude %>">
+
+                    <button type="submit" class="btn btn-primary">Track your Ambulance</button>
+                </form>
+
+            </div>
+
+        </div>
+
+
+
+
+
+        <%- include('./partial/script.ejs') %>
+</body>
+
+</html>

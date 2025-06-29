@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Mapbox Moving Driver with Optimal Route</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-sdk/services/directions.js"></script>
+    <style>
+        #map {
+            height: 80vh;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        // Initialize Mapbox
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3VodTEyIiwiYSI6ImNtNDhmaTJ6MTBkdHQya3M5eGRoejlldzYifQ.RfkfwzDkUXgB0MPqwI-nYg'; // Replace with your Mapbox API key
+
+        // Initial setup
+        const map = new mapboxgl.Map({
+            container: 'map', // ID of the HTML element where the map will render
+            style: 'mapbox://styles/mapbox/streets-v11', // Mapbox style
+            center: [80.923102, 26.839299], // Initial map center [longitude, latitude]
+            zoom: 12, // Zoom level
+        });
+
+        // Starting and destination positions
+        let startingPosition = [80.923102, 26.839299]; // Replace with actual starting longitude and latitude
+        let destinationPosition = [80.926102, 26.845299]; // Replace with actual destination longitude and latitude
+
+        // Add markers
+        const startMarker = new mapboxgl.Marker({ color: 'blue' }) // Blue marker for starting position
+            .setLngLat(startingPosition)
+            .addTo(map);
+
+        const destinationMarker = new mapboxgl.Marker({ color: 'red' }) // Red marker for destination
+            .setLngLat(destinationPosition)
+            .addTo(map);
+
+        // Function to fetch and display the route
+        async function fetchAndDisplayRoute(start, destination) {
+            try {
+                const response = await fetch(
+                    `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${destination[0]},${destination[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`
+                );
+                const data = await response.json();
+
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0].geometry;
+
+                    // Add the route to the map
+                    if (map.getSource('route')) {
+                        map.getSource('route').setData(route);
+                    } else {
+                        map.addLayer({
+                            id: 'route',
+                            type: 'line',
+                            source: {
+                                type: 'geojson',
+                                data: route,
+                            },
+                            layout: {
+                                'line-join': 'round',
+                                'line-cap': 'round',
+                            },
+                            paint: {
+                                'line-color': '#3887be',
+                                'line-width': 5,
+                            },
+                        });
+                    }
+                } else {
+                    console.error('No route found between the points.');
+                }
+            } catch (error) {
+                console.error('Error fetching route:', error);
+            }
+        }
+
+        // Update driver's location dynamically
+        function updateDriverLocation(newPosition) {
+            // Update marker position
+            startMarker.setLngLat(newPosition);
+
+            // Fetch and display the updated route
+            fetchAndDisplayRoute(newPosition, destinationPosition);
+        }
+
+        // Call the initial route display
+        fetchAndDisplayRoute(startingPosition, destinationPosition);
+
+        // Simulate driver location updates
+        let simulatedDriverPositionIndex = 0;
+        const simulatedDriverPositions = [
+            [80.923202, 26.840000],
+            [80.923302, 26.841000],
+            [80.923402, 26.842000],
+            [80.923502, 26.843000],
+        ];
+
+        setInterval(() => {
+            if (simulatedDriverPositionIndex < simulatedDriverPositions.length) {
+                const newDriverPosition = simulatedDriverPositions[simulatedDriverPositionIndex];
+                updateDriverLocation(newDriverPosition);
+                simulatedDriverPositionIndex++;
+            }
+        }, 5000); // Update every 5 seconds
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Movement and Route</title>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    #map {
+      width: 100%;
+      height: 80vh;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script>
+    // Set your Mapbox API token
+    mapboxgl.accessToken = 'pk.eyJ1Ijoic3VodTEyIiwiYSI6ImNtNDhmaTJ6MTBkdHQya3M5eGRoejlldzYifQ.RfkfwzDkUXgB0MPqwI-nYg'
+    // Initialize the Mapbox map
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [81.8432, 25.445], // Initial center
+      zoom: 13
+    });
+
+    // Add navigation controls
+    map.addControl(new mapboxgl.NavigationControl());
+
+    // Define Source, Destination, and Driver Locations
+    const sourceLocation = { latitude: 25.445, longitude: 81.8432 }; // Replace with actual data
+    const destinationLocation = { latitude: 25.450, longitude: 81.8500 }; // Replace with actual data
+    let driverLocation = { latitude: 25.445, longitude: 81.8432 }; // Initial driver location
+
+    // Add Source Marker
+    new mapboxgl.Marker({ color: 'blue' })
+      .setLngLat([sourceLocation.longitude, sourceLocation.latitude])
+      .setPopup(new mapboxgl.Popup().setText('Source'))
+      .addTo(map);
+
+    // Add Destination Marker
+    new mapboxgl.Marker({ color: 'red' })
+      .setLngLat([destinationLocation.longitude, destinationLocation.latitude])
+      .setPopup(new mapboxgl.Popup().setText('Destination'))
+      .addTo(map);
+
+    // Add Driver Marker
+    const driverMarker = new mapboxgl.Marker({ color: 'green' })
+      .setLngLat([driverLocation.longitude, driverLocation.latitude])
+      .setPopup(new mapboxgl.Popup().setText('Driver'))
+      .addTo(map);
+
+    // Draw Route
+    async function drawRoute() {
+      const response = await fetch(
+        `https://api.mapbox.com/directions/v5/mapbox/driving/${sourceLocation.longitude},${sourceLocation.latitude};${destinationLocation.longitude},${destinationLocation.latitude}?geometries=geojson&access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+
+      const route = data.routes[0].geometry; // GeoJSON route
+
+      map.addSource('route', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: route
+        }
+      });
+
+      map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#888',
+          'line-width': 6
+        }
+      });
+
+      // Fit map to the route
+      const bounds = new mapboxgl.LngLatBounds();
+      bounds.extend([sourceLocation.longitude, sourceLocation.latitude]);
+      bounds.extend([destinationLocation.longitude, destinationLocation.latitude]);
+      map.fitBounds(bounds, { padding: 50 });
+    }
+
+    // Fetch Driver's Location
+    async function fetchDriverLocation() {
+      try {
+        const response = await fetch('http://localhost:8033/driver-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ Ambulance: '12345', member: 'userId=675331426ff00c82edb2a81e' })
+        });
+        const data = await response.json();
+        if (data.latitude && data.longitude) {
+          driverLocation.latitude = data.latitude;
+          driverLocation.longitude = data.longitude;
+          return [data.longitude, data.latitude];
+        } else {
+          console.error('Invalid driver location response');
+          return null;
+        }
+      } catch (error) {
+        console.error('Error fetching driver location:', error);
+        return null;
+      }
+    }
+
+    // Update Driver Marker
+    async function updateDriverPosition() {
+      const location = await fetchDriverLocation();
+      console.log(location)
+      if (location) {
+        driverMarker.setLngLat(location); // Update marker position
+      }
+    }
+
+    // Refresh Driver Location Every 2 Seconds
+    setInterval(updateDriverPosition, 2000);
+
+    // Draw the initial route
+    drawRoute();
+  </script>
+</body>
+
+</html>
+
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic3VodTEyIiwiYSI6ImNtNDhmaTJ6MTBkdHQya3M5eGRoejlldzYifQ.RfkfwzDkUXgB0MPqwI-nYg'
